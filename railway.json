@@ -1,4 +1,7 @@
 {
+  "build": {
+    "dockerfilePath": "Dockerfile"
+  },
   "deploy": {
     "startCommand": "node server.js",
     "restartPolicyType": "ON_FAILURE",

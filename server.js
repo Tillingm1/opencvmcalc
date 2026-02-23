@@ -1,8 +1,7 @@
 const express = require('express');
 const session = require('express-session');
 const path = require('path');
-const puppeteer = require('puppeteer-core');
-const chromium = require('@sparticuz/chromium');
+const puppeteer = require('puppeteer');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -80,9 +79,9 @@ let browser = null;
 async function getBrowser() {
   if (!browser) {
     browser = await puppeteer.launch({
-      headless: chromium.headless,
-      executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || await chromium.executablePath(),
-      args: chromium.args
+      headless: true,
+      executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
+      args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage']
     });
   }
   return browser;
