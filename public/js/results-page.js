@@ -30,13 +30,13 @@ function renderSummaryCards(hosted, aws, onprem) {
   document.getElementById('summaryCards').innerHTML = html;
 }
 
-function renderCompetitorTable(hosted, competitors) {
-  const ourTCO = hosted.tco5;
-  const ourAnnual = hosted.totalAnnual;
-  const ourImpl = hosted.deployFee + hosted.implCost;
+function renderCompetitorTable(recommended, competitors) {
+  const ourTCO = recommended.tco5;
+  const ourAnnual = recommended.totalAnnual;
+  const ourImpl = recommended.deployFee + recommended.implCost;
 
   let rows = `<tr style="background:rgba(39,204,180,0.08)">
-    <td style="font-weight:700">OpenCVM (Hosted)</td>
+    <td style="font-weight:700">OpenCVM (${recommended.label})</td>
     <td class="number">${fmtFull(ourAnnual)}</td>
     <td class="number">${fmtFull(ourImpl)}</td>
     <td class="number">\u20AC0</td>
@@ -92,7 +92,7 @@ function renderCompetitorTable(hosted, competitors) {
   document.getElementById('competitorChart').innerHTML = `<svg viewBox="0 0 ${chartW} ${chartH}" xmlns="http://www.w3.org/2000/svg" style="font-family:var(--font)">${bars}</svg>`;
 }
 
-function renderTCOChart(hosted, competitors) {
+function renderTCOChart(recommended, competitors) {
   const W = 750, H = 380, pad = { t: 30, r: 120, b: 50, l: 80 };
   const plotW = W - pad.l - pad.r;
   const plotH = H - pad.t - pad.b;
@@ -106,9 +106,9 @@ function renderTCOChart(hosted, competitors) {
       color: 'var(--green)',
       weight: 3,
       data: (() => {
-        const impl = hosted.deployFee + hosted.implCost;
+        const impl = recommended.deployFee + recommended.implCost;
         const pts = [impl];
-        for (let y = 1; y <= 5; y++) pts.push(impl + hosted.totalAnnual * y);
+        for (let y = 1; y <= 5; y++) pts.push(impl + recommended.totalAnnual * y);
         return pts;
       })()
     },
@@ -202,10 +202,19 @@ document.addEventListener('DOMContentLoaded', () => {
   const onprem = calcOnPrem(inp);
   const competitors = calcCompetitors(inp);
 
+  // Find recommended (cheapest 5-year TCO)
+  const options = [
+    { label: 'Hosted', data: hosted },
+    { label: 'Self-Hosted AWS', data: aws },
+    { label: 'Self-Hosted On-Prem', data: onprem }
+  ];
+  const best = options.reduce((a, b) => a.data.tco5 < b.data.tco5 ? a : b);
+  const recommended = { ...best.data, label: best.label };
+
   // Render
   renderSummaryCards(hosted, aws, onprem);
-  renderCompetitorTable(hosted, competitors);
-  renderTCOChart(hosted, competitors);
+  renderCompetitorTable(recommended, competitors);
+  renderTCOChart(recommended, competitors);
 
   // Download PDF
   document.getElementById('downloadBtn').addEventListener('click', async () => {
