@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Results — OpenCVM Pricing Calculator</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div style="display:flex;align-items:center;gap:16px">
+    <img src="/img/opencvm-logo.svg" alt="OpenCVM" style="height:26px;filter:brightness(0) invert(1)">
+    <h1>Pricing Calculator</h1>
+  </div>
+  <div class="header-right">
+    <a href="/" class="btn-outline">
+      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+      Back to Calculator
+    </a>
+    <a href="/logout" class="btn-outline" style="opacity:0.6;font-size:0.75rem">Logout</a>
+  </div>
+</div>
+
+<!-- CONFIG SUMMARY -->
+<div class="config-summary" id="configSummary"></div>
+
+<!-- MAIN RESULTS -->
+<div class="results-main">
+
+  <!-- Section 1: Summary Cards -->
+  <div class="output-section">
+    <h2><span class="icon" style="background:var(--dark)">$</span> Cost Summary</h2>
+    <div class="cards" id="summaryCards"></div>
+  </div>
+
+  <!-- Section 2: Competitor Comparison -->
+  <div class="output-section">
+    <h2><span class="icon" style="background:var(--pink)">C</span> Competitor Comparison (5-Year TCO)</h2>
+    <div class="table-wrap" id="competitorTable"></div>
+    <div class="chart-container" style="margin-top:16px" id="competitorChart"></div>
+  </div>
+
+  <!-- Section 3: TCO Chart -->
+  <div class="output-section">
+    <h2><span class="icon" style="background:var(--green)">5</span> 5-Year TCO: OpenCVM vs Competition</h2>
+    <div class="chart-container" id="tcoChart"></div>
+  </div>
+
+  <!-- Download PDF -->
+  <div class="download-section">
+    <button class="download-btn" id="downloadBtn">
+      <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+      <span class="spinner"></span>
+      Download PDF Report
+    </button>
+  </div>
+
+</div>
+
+<div class="footer">
+  <img src="/img/exacaster-logo-white.png" alt="Exacaster" style="height:20px;opacity:0.5;margin-bottom:6px;filter:brightness(0)">
+  <div>Customer Value Management Platform</div>
+</div>
+
+<script src="/js/pricing-data.js"></script>
+<script src="/js/calc-engine.js"></script>
+<script src="/js/results-page.js"></script>
+</body>
+</html>

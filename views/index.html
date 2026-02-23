@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OpenCVM Pricing Calculator</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+<!-- HERO -->
+<div class="hero">
+  <img src="/img/opencvm-logo.svg" alt="OpenCVM" style="height:48px;margin-bottom:24px;filter:brightness(0) invert(1)">
+  <h1>Pricing Calculator</h1>
+  <p>Estimate the total cost of ownership for the open-source Customer Value Management platform across three deployment options: Hosted, Self-Hosted AWS, and Self-Hosted On-Prem.</p>
+</div>
+
+<!-- FORM -->
+<div class="form-container">
+  <form id="pricingForm" action="/calculating" method="GET">
+    <div class="form-card">
+
+      <!-- Client Info -->
+      <div class="form-section-title">Client Information</div>
+      <div class="form-grid">
+        <div class="field">
+          <label>Company Name</label>
+          <input type="text" name="company" id="companyName" placeholder="Enter company name" value="">
+        </div>
+        <div class="field">
+          <label>Region</label>
+          <select name="region" id="region">
+            <option value="7">North America</option>
+            <option value="1">Western Europe</option>
+            <option value="2" selected>Eastern Europe / Baltics</option>
+            <option value="3">Middle East / GCC</option>
+            <option value="4">Southeast Asia</option>
+            <option value="5">South Asia</option>
+            <option value="6">Africa</option>
+            <option value="8">Latin America</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>SLA Level</label>
+          <div class="radio-group">
+            <label><input type="radio" name="sla" value="9x5" checked><span>9x5</span></label>
+            <label><input type="radio" name="sla" value="24x7"><span>24x7</span></label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Platform Config -->
+      <div class="form-section-title">Platform Configuration</div>
+      <div class="form-grid">
+        <div class="field full-width" style="grid-column: span 2">
+          <label>Subscriber Count</label>
+          <input type="range" id="subsSlider" min="100000" max="20000000" step="100000" value="1000000">
+          <div style="display:flex;gap:8px;align-items:center;margin-top:4px">
+            <input type="number" name="subs" id="subsInput" min="100000" max="20000000" step="100000" value="1000000" style="flex:1">
+            <span class="sub-value" id="subsDisplay">1.0M</span>
+          </div>
+        </div>
+        <div class="field">
+          <label>Traits per Subscriber</label>
+          <input type="number" name="traits" id="traits" min="50" max="2000" step="10" value="200">
+        </div>
+      </div>
+      <div class="form-grid" style="margin-top:16px">
+        <div class="field full-width">
+          <label>Applications</label>
+          <div class="checkbox-group">
+            <label class="locked"><input type="checkbox" checked disabled><span>Core</span></label>
+            <label><input type="checkbox" id="appFlow" name="flow" value="1" checked><span>Flow</span></label>
+            <label><input type="checkbox" id="appNBO" name="nbo" value="1" checked><span>NBO</span></label>
+            <label><input type="checkbox" id="appChurn" name="churn" value="1" checked><span>Churn</span></label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Implementation -->
+      <div class="form-section-title">Implementation</div>
+      <div class="form-grid">
+        <div class="field">
+          <label>Quick Campaign Migrations</label>
+          <input type="number" name="qm" id="quickMig" min="0" value="0">
+        </div>
+        <div class="field">
+          <label>Simple Integrations</label>
+          <input type="number" name="si" id="simpleInt" min="0" value="0">
+        </div>
+        <div class="field">
+          <label>Complex Integrations</label>
+          <input type="number" name="ci" id="complexInt" min="0" value="0">
+        </div>
+      </div>
+
+      <!-- CTA -->
+      <div class="cta-row">
+        <button type="submit" class="btn-pink">
+          Calculate Pricing
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </button>
+      </div>
+    </div>
+  </form>
+</div>
+
+<div class="footer">
+  <img src="/img/exacaster-logo-white.png" alt="Exacaster" style="height:20px;opacity:0.5;margin-bottom:6px;filter:brightness(0)">
+  <div>Customer Value Management Platform</div>
+</div>
+
+<script src="/js/pricing-data.js"></script>
+<script src="/js/input-page.js"></script>
+</body>
+</html>

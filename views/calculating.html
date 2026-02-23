@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calculating... — OpenCVM</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--pink:#FD4F7B;--blue:#3399FF;--green:#27CCB4;--dark:#2D3B4D;--font:'Inter',system-ui,sans-serif}
+body{font-family:var(--font);background:var(--dark);color:white;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden}
+
+.calc-container{text-align:center;position:relative}
+
+.logo{height:44px;margin-bottom:40px;filter:brightness(0) invert(1);opacity:0;animation:fadeIn 0.4s ease 0.2s forwards}
+
+/* Animated ring */
+.ring-wrap{position:relative;width:120px;height:120px;margin:0 auto 32px}
+.ring{width:120px;height:120px;border-radius:50%;border:3px solid rgba(255,255,255,0.1);border-top-color:var(--green);border-right-color:var(--blue);animation:spin 1.2s linear infinite}
+.ring-inner{position:absolute;top:12px;left:12px;width:96px;height:96px;border-radius:50%;border:2px solid rgba(255,255,255,0.05);border-bottom-color:var(--pink);animation:spin 0.8s linear infinite reverse}
+.ring-check{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:32px;opacity:0;transition:opacity 0.3s}
+.ring-check.show{opacity:1}
+
+/* Status text */
+.status{font-size:1.1rem;font-weight:500;letter-spacing:-0.01em;opacity:0;animation:fadeIn 0.4s ease 0.4s forwards;min-height:1.5em}
+.status-sub{font-size:0.8rem;opacity:0;color:rgba(255,255,255,0.5);margin-top:8px;animation:fadeIn 0.4s ease 0.6s forwards}
+
+/* Progress bar */
+.progress-track{width:280px;height:3px;background:rgba(255,255,255,0.1);border-radius:2px;margin:24px auto 0;overflow:hidden;opacity:0;animation:fadeIn 0.3s ease 0.5s forwards}
+.progress-bar{height:100%;width:0;background:linear-gradient(90deg,var(--green),var(--blue),var(--pink));border-radius:2px;transition:width 0.3s ease}
+
+/* Steps appearing */
+.steps{margin-top:32px;text-align:left;display:inline-block}
+.step{font-size:0.78rem;color:rgba(255,255,255,0.4);padding:4px 0;display:flex;align-items:center;gap:8px;opacity:0;transform:translateY(8px);transition:all 0.3s ease}
+.step.active{opacity:1;transform:translateY(0);color:rgba(255,255,255,0.8)}
+.step.done{opacity:1;transform:translateY(0);color:var(--green)}
+.step-dot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,0.2);flex-shrink:0;transition:background 0.3s}
+.step.active .step-dot{background:var(--blue)}
+.step.done .step-dot{background:var(--green)}
+
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes fadeIn{to{opacity:1}}
+</style>
+</head>
+<body>
+
+<div class="calc-container">
+  <img class="logo" src="/img/opencvm-logo.svg" alt="OpenCVM">
+
+  <div class="ring-wrap">
+    <div class="ring" id="ring"></div>
+    <div class="ring-inner" id="ringInner"></div>
+    <div class="ring-check" id="ringCheck">&#10003;</div>
+  </div>
+
+  <div class="status" id="status">Analyzing configuration...</div>
+  <div class="status-sub" id="statusSub">This will only take a moment</div>
+
+  <div class="progress-track">
+    <div class="progress-bar" id="progressBar"></div>
+  </div>
+
+  <div class="steps">
+    <div class="step" id="step0"><span class="step-dot"></span>Loading pricing tiers</div>
+    <div class="step" id="step1"><span class="step-dot"></span>Calculating deployment costs</div>
+    <div class="step" id="step2"><span class="step-dot"></span>Running competitor analysis</div>
+    <div class="step" id="step3"><span class="step-dot"></span>Generating 5-year projections</div>
+    <div class="step" id="step4"><span class="step-dot"></span>Preparing your results</div>
+  </div>
+</div>
+
+<script>
+const steps = [
+  { text: 'Loading pricing tiers...', pct: 15 },
+  { text: 'Calculating deployment costs...', pct: 35 },
+  { text: 'Running competitor analysis...', pct: 60 },
+  { text: 'Generating 5-year projections...', pct: 85 },
+  { text: 'Ready!', pct: 100 }
+];
+
+const bar = document.getElementById('progressBar');
+const status = document.getElementById('status');
+let currentStep = 0;
+
+function advanceStep() {
+  if (currentStep > 0) {
+    document.getElementById('step' + (currentStep - 1)).className = 'step done';
+  }
+
+  if (currentStep < steps.length) {
+    const s = steps[currentStep];
+    status.textContent = s.text;
+    bar.style.width = s.pct + '%';
+    document.getElementById('step' + currentStep).className = 'step active';
+    currentStep++;
+
+    if (currentStep < steps.length) {
+      setTimeout(advanceStep, 400 + Math.random() * 200);
+    } else {
+      // Final step — finish and redirect
+      setTimeout(() => {
+        document.getElementById('step' + (currentStep - 1)).className = 'step done';
+        document.getElementById('ring').style.animation = 'none';
+        document.getElementById('ring').style.borderColor = 'var(--green)';
+        document.getElementById('ringInner').style.animation = 'none';
+        document.getElementById('ringInner').style.borderColor = 'var(--green)';
+        document.getElementById('ringCheck').className = 'ring-check show';
+        status.textContent = 'Your estimate is ready';
+        document.getElementById('statusSub').textContent = '';
+
+        setTimeout(() => {
+          // Redirect to results with same query params
+          window.location.href = '/results' + window.location.search;
+        }, 600);
+      }, 300);
+    }
+  }
+}
+
+// Start after a brief pause
+setTimeout(() => {
+  document.getElementById('step0').className = 'step active';
+  advanceStep();
+}, 500);
+</script>
+</body>
+</html>

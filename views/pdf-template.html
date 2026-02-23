@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>OpenCVM Pricing Report</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --pink:#FD4F7B;--blue:#3399FF;--green:#27CCB4;
+  --dark:#2D3B4D;--light:#F2F4F7;--white:#FFFFFF;--black:#000000;
+  --radius:8px;
+  --font:'Inter',system-ui,-apple-system,sans-serif;
+}
+html{font-size:11px}
+body{font-family:var(--font);color:var(--black);background:white;line-height:1.4;padding:0;margin:0}
+
+/* PDF Header */
+.pdf-header{display:flex;align-items:center;justify-content:space-between;padding:20px 30px;border-bottom:3px solid var(--dark);margin-bottom:24px}
+.pdf-header img{height:36px}
+.pdf-header-right{text-align:right}
+.pdf-header-right .client{font-weight:700;font-size:1.2rem;color:var(--dark)}
+.pdf-header-right .date{font-size:0.85rem;color:#666}
+.pdf-header-right .subtitle{font-size:0.8rem;color:#999;margin-top:2px}
+
+/* Section headers */
+.section{margin-bottom:24px;page-break-inside:avoid}
+.section h2{font-size:1.05rem;font-weight:700;color:var(--dark);margin-bottom:12px;display:flex;align-items:center;gap:6px}
+.section h2 .icon{width:20px;height:20px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:0.6rem;color:white;font-weight:700}
+
+/* Cards */
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.card{border-radius:var(--radius);padding:16px;border:2px solid #E0E4EA;position:relative}
+.card.hosted{border-color:var(--pink)}
+.card.aws{border-color:var(--blue)}
+.card.onprem{border-color:var(--green)}
+.card-label{font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px}
+.card.hosted .card-label{color:var(--pink)}
+.card.aws .card-label{color:var(--blue)}
+.card.onprem .card-label{color:var(--green)}
+.card-price{font-size:1.5rem;font-weight:800;color:var(--dark);line-height:1.1;margin-bottom:3px}
+.card-sub{font-size:0.7rem;color:#8B95A5;margin-bottom:10px}
+.card-details{display:flex;flex-direction:column;gap:4px}
+.card-detail{display:flex;justify-content:space-between;font-size:0.72rem}
+.card-detail .label{color:#8B95A5}
+.card-detail .value{font-weight:600}
+.badge{position:absolute;top:-8px;right:10px;background:var(--green);color:white;font-size:0.6rem;font-weight:700;padding:2px 8px;border-radius:20px;text-transform:uppercase}
+
+/* Tables */
+.table-wrap{border-radius:var(--radius);overflow:hidden;border:1px solid #ccc}
+table{width:100%;border-collapse:collapse;font-size:0.72rem}
+th{background:var(--dark);color:white;padding:8px 10px;text-align:left;font-weight:600;font-size:0.66rem;text-transform:uppercase;letter-spacing:0.04em;white-space:nowrap}
+td{padding:7px 10px;border-bottom:1px solid var(--light)}
+tr:last-child td{border-bottom:none}
+tr.total-row{background:var(--light);font-weight:700}
+tr.total-row td{border-top:2px solid var(--dark)}
+.sub-header th{background:#4A5568;font-size:0.62rem}
+td.number{text-align:right;font-variant-numeric:tabular-nums}
+.savings-positive{color:var(--green);font-weight:700}
+
+/* Charts */
+.chart-container{border-radius:var(--radius);padding:16px;border:1px solid #ccc;page-break-inside:avoid}
+.chart-container svg{width:100%;height:auto}
+
+/* Footer */
+.pdf-footer{text-align:center;font-size:0.7rem;color:#999;margin-top:24px;padding-top:12px;border-top:1px solid #E0E4EA}
+
+/* Page breaks */
+.page-break{page-break-before:always;margin-top:0}
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="pdf-header">
+  <img id="logoImg" src="" alt="Exacaster CVM Platform">
+  <div class="pdf-header-right">
+    <div class="client" id="clientName"></div>
+    <div class="date" id="reportDate"></div>
+    <div class="subtitle">OpenCVM Pricing Estimate</div>
+  </div>
+</div>
+
+<!-- Section 1: Summary Cards -->
+<div class="section">
+  <h2><span class="icon" style="background:var(--dark)">$</span> Cost Summary</h2>
+  <div class="cards" id="summaryCards"></div>
+</div>
+
+<!-- Section 2: Detailed Breakdown -->
+<div class="section">
+  <h2><span class="icon" style="background:var(--blue)">T</span> Detailed Cost Breakdown</h2>
+  <div class="table-wrap" id="breakdownTable"></div>
+</div>
+
+<!-- Section 3: Competitor Comparison -->
+<div class="section">
+  <h2><span class="icon" style="background:var(--pink)">C</span> Competitor Comparison (5-Year TCO)</h2>
+  <div class="table-wrap" id="competitorTable"></div>
+  <div class="chart-container" style="margin-top:12px" id="competitorChart"></div>
+</div>
+
+<!-- Section 4: TCO Chart -->
+<div class="section">
+  <h2><span class="icon" style="background:var(--green)">5</span> 5-Year TCO: OpenCVM vs Competition</h2>
+  <div class="chart-container" id="tcoChart"></div>
+</div>
+
+<div class="pdf-footer">
+  <img id="footerLogo" src="" alt="Exacaster" style="height:16px;opacity:0.4;margin-bottom:4px"><br>
+  Confidential — Prepared by Exacaster | exacaster.com
+</div>
+
+<script src="/js/pricing-data.js"></script>
+<script src="/js/calc-engine.js"></script>
+<script>
+// =============================================
+// PDF RENDERING FUNCTIONS
+// =============================================
+
+function renderSummaryCards(hosted, aws, onprem) {
+  const options = [
+    { key: 'hosted', label: 'Exacaster Hosted', data: hosted, cls: 'hosted' },
+    { key: 'aws', label: 'Self-Hosted AWS', data: aws, cls: 'aws' },
+    { key: 'onprem', label: 'Self-Hosted On-Prem', data: onprem, cls: 'onprem' }
+  ];
+  const cheapest = options.reduce((a, b) => a.data.tco5 < b.data.tco5 ? a : b);
+  const html = options.map(o => {
+    const badge = o.key === cheapest.key ? '<span class="badge">Recommended</span>' : '';
+    return `<div class="card ${o.cls}">
+      ${badge}
+      <div class="card-label">${o.label}</div>
+      <div class="card-price">${fmt(o.data.totalAnnual)}</div>
+      <div class="card-sub">Annual Recurring</div>
+      <div class="card-details">
+        <div class="card-detail"><span class="label">Deployment Fee</span><span class="value">${fmtFull(o.data.deployFee)}</span></div>
+        <div class="card-detail"><span class="label">Implementation</span><span class="value">${fmtFull(o.data.implCost)}</span></div>
+        <div class="card-detail"><span class="label">Year 1 Total</span><span class="value">${fmtFull(o.data.year1)}</span></div>
+        <div class="card-detail" style="border-top:1px solid var(--light);padding-top:4px;margin-top:2px"><span class="label" style="font-weight:600">5-Year TCO</span><span class="value" style="font-size:0.95rem">${fmt(o.data.tco5)}</span></div>
+      </div>
+    </div>`;
+  }).join('');
+  document.getElementById('summaryCards').innerHTML = html;
+}
+
+function renderBreakdownTable(hosted, aws, onprem) {
+  const html = `<table>
+    <thead>
+      <tr>
+        <th style="width:22%">Cost Component</th>
+        <th style="width:13%;border-left:2px solid var(--pink)">Hosted</th>
+        <th colspan="3" style="border-left:2px solid var(--blue);text-align:center">Self-Hosted AWS</th>
+        <th colspan="3" style="border-left:2px solid var(--green);text-align:center">Self-Hosted On-Prem</th>
+      </tr>
+      <tr class="sub-header">
+        <th></th>
+        <th style="border-left:2px solid var(--pink)">Total</th>
+        <th style="border-left:2px solid var(--blue)">Exacaster</th><th>Infra</th><th>Total</th>
+        <th style="border-left:2px solid var(--green)">Exacaster</th><th>Infra</th><th>Total</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Platform License</td>
+        <td class="number" style="border-left:2px solid rgba(253,79,123,0.2)">${fmtFull(hosted.platformAnnual)}</td>
+        <td class="number" style="border-left:2px solid rgba(51,153,255,0.2)">\u2014</td><td class="number">\u2014</td><td class="number">\u2014</td>
+        <td class="number" style="border-left:2px solid rgba(39,204,180,0.2)">\u2014</td><td class="number">\u2014</td><td class="number">\u2014</td>
+      </tr>
+      <tr>
+        <td>Enterprise Support</td>
+        <td class="number" style="border-left:2px solid rgba(253,79,123,0.2)">Included</td>
+        <td class="number" style="border-left:2px solid rgba(51,153,255,0.2)">${fmtFull(aws.supportAnnual)}</td><td class="number">\u2014</td><td class="number">${fmtFull(aws.supportAnnual)}</td>
+        <td class="number" style="border-left:2px solid rgba(39,204,180,0.2)">${fmtFull(onprem.supportAnnual)}</td><td class="number">\u2014</td><td class="number">${fmtFull(onprem.supportAnnual)}</td>
+      </tr>
+      <tr>
+        <td>Managed Services (${aws.totalCIs} / ${onprem.totalCIs} CIs)</td>
+        <td class="number" style="border-left:2px solid rgba(253,79,123,0.2)">Included</td>
+        <td class="number" style="border-left:2px solid rgba(51,153,255,0.2)">${fmtFull(aws.msAnnual)}</td><td class="number">\u2014</td><td class="number">${fmtFull(aws.msAnnual)}</td>
+        <td class="number" style="border-left:2px solid rgba(39,204,180,0.2)">${fmtFull(onprem.msAnnual)}</td><td class="number">\u2014</td><td class="number">${fmtFull(onprem.msAnnual)}</td>
+      </tr>
+      <tr>
+        <td>Infrastructure</td>
+        <td class="number" style="border-left:2px solid rgba(253,79,123,0.2)">Included</td>
+        <td class="number" style="border-left:2px solid rgba(51,153,255,0.2)">\u2014</td><td class="number">${fmtFull(aws.infraAnnual)}</td><td class="number">${fmtFull(aws.infraAnnual)}</td>
+        <td class="number" style="border-left:2px solid rgba(39,204,180,0.2)">\u2014</td><td class="number">${fmtFull(onprem.infraAnnual)}</td><td class="number">${fmtFull(onprem.infraAnnual)}</td>
+      </tr>
+      <tr class="total-row">
+        <td>Annual Recurring</td>
+        <td class="number" style="border-left:2px solid rgba(253,79,123,0.2)">${fmtFull(hosted.totalAnnual)}</td>
+        <td class="number" style="border-left:2px solid rgba(51,153,255,0.2)">${fmtFull(aws.exaAnnual)}</td><td class="number">${fmtFull(aws.infraAnnual)}</td><td class="number">${fmtFull(aws.totalAnnual)}</td>
+        <td class="number" style="border-left:2px solid rgba(39,204,180,0.2)">${fmtFull(onprem.exaAnnual)}</td><td class="number">${fmtFull(onprem.infraAnnual)}</td><td class="number">${fmtFull(onprem.totalAnnual)}</td>
+      </tr>
+      <tr><td colspan="8" style="height:6px;background:var(--light);padding:0"></td></tr>
+      <tr>
+        <td>Deployment Fee</td>
+        <td class="number" style="border-left:2px solid rgba(253,79,123,0.2)">${fmtFull(hosted.deployFee)}</td>
+        <td class="number" colspan="2" style="border-left:2px solid rgba(51,153,255,0.2)"></td><td class="number">${fmtFull(aws.deployFee)}</td>
+        <td class="number" colspan="2" style="border-left:2px solid rgba(39,204,180,0.2)"></td><td class="number">${fmtFull(onprem.deployFee)}</td>
+      </tr>
+      <tr>
+        <td>Implementation</td>
+        <td class="number" style="border-left:2px solid rgba(253,79,123,0.2)">${fmtFull(hosted.implCost)}</td>
+        <td class="number" colspan="2" style="border-left:2px solid rgba(51,153,255,0.2)"></td><td class="number">${fmtFull(aws.implCost)}</td>
+        <td class="number" colspan="2" style="border-left:2px solid rgba(39,204,180,0.2)"></td><td class="number">${fmtFull(onprem.implCost)}</td>
+      </tr>
+      <tr class="total-row">
+        <td>Year 1 Total</td>
+        <td class="number" style="border-left:2px solid rgba(253,79,123,0.2)">${fmtFull(hosted.year1)}</td>
+        <td class="number" colspan="2" style="border-left:2px solid rgba(51,153,255,0.2)"></td><td class="number">${fmtFull(aws.year1)}</td>
+        <td class="number" colspan="2" style="border-left:2px solid rgba(39,204,180,0.2)"></td><td class="number">${fmtFull(onprem.year1)}</td>
+      </tr>
+      <tr class="total-row" style="background:#E8F5E9">
+        <td style="font-size:0.8rem">5-Year TCO</td>
+        <td class="number" style="border-left:2px solid rgba(253,79,123,0.2);font-size:0.8rem">${fmtFull(hosted.tco5)}</td>
+        <td class="number" colspan="2" style="border-left:2px solid rgba(51,153,255,0.2)"></td><td class="number" style="font-size:0.8rem">${fmtFull(aws.tco5)}</td>
+        <td class="number" colspan="2" style="border-left:2px solid rgba(39,204,180,0.2)"></td><td class="number" style="font-size:0.8rem">${fmtFull(onprem.tco5)}</td>
+      </tr>
+    </tbody>
+  </table>`;
+  document.getElementById('breakdownTable').innerHTML = html;
+}
+
+function renderCompetitorTable(hosted, competitors) {
+  const ourTCO = hosted.tco5;
+  const ourAnnual = hosted.totalAnnual;
+  const ourImpl = hosted.deployFee + hosted.implCost;
+
+  let rows = `<tr style="background:rgba(39,204,180,0.08)">
+    <td style="font-weight:700">OpenCVM (Hosted)</td>
+    <td class="number">${fmtFull(ourAnnual)}</td>
+    <td class="number">${fmtFull(ourImpl)}</td>
+    <td class="number">\u20AC0</td>
+    <td class="number" style="font-weight:700">${fmtFull(ourTCO)}</td>
+    <td class="number">\u2014</td>
+  </tr>`;
+
+  const compEntries = Object.entries(competitors).sort((a,b) => a[1].tco5 - b[1].tco5);
+  for (const [name, data] of compEntries) {
+    const savings = pctSavings(ourTCO, data.tco5);
+    rows += `<tr>
+      <td>${name}</td>
+      <td class="number">${fmtFull(data.annualPlatform)}</td>
+      <td class="number">${fmtFull(data.impl)}</td>
+      <td class="number">${fmtFull(data.support)}</td>
+      <td class="number" style="font-weight:600">${fmtFull(data.tco5)}</td>
+      <td class="number savings-positive">${savings}</td>
+    </tr>`;
+  }
+
+  document.getElementById('competitorTable').innerHTML = `<table>
+    <thead><tr>
+      <th>Platform</th><th>Annual Platform</th><th>Implementation</th>
+      <th>Annual Support</th><th>5-Year TCO</th><th>OpenCVM Saves</th>
+    </tr></thead>
+    <tbody>${rows}</tbody>
+  </table>`;
+
+  // Bar chart
+  const allEntries = [{ name: 'OpenCVM', tco5: ourTCO }, ...compEntries.map(([n,d]) => ({ name: n, tco5: d.tco5 }))];
+  const maxTCO = Math.max(...allEntries.map(e => e.tco5));
+  const chartW = 700, barH = 24, gap = 6, labelW = 120, valueW = 90;
+  const chartH = allEntries.length * (barH + gap) + 16;
+  const barAreaW = chartW - labelW - valueW - 20;
+
+  let bars = '';
+  allEntries.forEach((e, i) => {
+    const y = i * (barH + gap) + 8;
+    const w = (e.tco5 / maxTCO) * barAreaW;
+    const color = e.name === 'OpenCVM' ? 'var(--green)' : '#CBD5E0';
+    bars += `<text x="${labelW - 6}" y="${y + barH/2 + 3}" text-anchor="end" font-size="10" font-weight="${e.name==='OpenCVM'?'700':'400'}" fill="var(--dark)">${e.name}</text>`;
+    bars += `<rect x="${labelW}" y="${y}" width="${w}" height="${barH}" rx="3" fill="${color}"/>`;
+    bars += `<text x="${labelW + w + 6}" y="${y + barH/2 + 3}" font-size="10" font-weight="600" fill="var(--dark)">${fmt(e.tco5)}</text>`;
+  });
+  document.getElementById('competitorChart').innerHTML = `<svg viewBox="0 0 ${chartW} ${chartH}" xmlns="http://www.w3.org/2000/svg" style="font-family:var(--font)">${bars}</svg>`;
+}
+
+function renderTCOChart(hosted, competitors) {
+  const W = 700, H = 340, pad = { t: 25, r: 110, b: 45, l: 70 };
+  const plotW = W - pad.l - pad.r;
+  const plotH = H - pad.t - pad.b;
+
+  const compColors = ['#A0AEC0','#718096','#E53E3E','#DD6B20','#805AD5','#2B6CB0'];
+  const compEntries = Object.entries(competitors).sort((a,b) => a[1].tco5 - b[1].tco5);
+
+  const lines = [
+    {
+      name: 'OpenCVM', color: 'var(--green)', weight: 2.5,
+      data: (() => {
+        const impl = hosted.deployFee + hosted.implCost;
+        const pts = [impl];
+        for (let y = 1; y <= 5; y++) pts.push(impl + hosted.totalAnnual * y);
+        return pts;
+      })()
+    },
+    ...compEntries.map(([name, data], i) => ({
+      name: name.replace(' CDP','').replace(' RT-CDP',''),
+      color: compColors[i % compColors.length], weight: 1.5,
+      data: (() => {
+        const pts = [data.impl];
+        for (let y = 1; y <= 5; y++) pts.push(data.impl + (data.annualPlatform + data.support) * y);
+        return pts;
+      })()
+    }))
+  ];
+
+  const maxVal = Math.max(...lines.flatMap(l => l.data));
+  const niceMax = Math.ceil(maxVal / 500000) * 500000;
+  function x(yr) { return pad.l + (yr / 5) * plotW; }
+  function y(val) { return pad.t + (1 - val / niceMax) * plotH; }
+
+  let svg = '';
+  for (let i = 0; i <= 5; i++) {
+    const val = (niceMax / 5) * i;
+    const yPos = y(val);
+    svg += `<line x1="${pad.l}" y1="${yPos}" x2="${W - pad.r}" y2="${yPos}" stroke="#E2E8F0" stroke-width="1"/>`;
+    svg += `<text x="${pad.l - 6}" y="${yPos + 3}" text-anchor="end" font-size="9" fill="#8B95A5">${fmt(val)}</text>`;
+  }
+  for (let yr = 0; yr <= 5; yr++) {
+    svg += `<text x="${x(yr)}" y="${H - pad.b + 16}" text-anchor="middle" font-size="10" fill="var(--dark)">Year ${yr}</text>`;
+  }
+
+  const [ocvmLine, ...compLines] = lines;
+  compLines.forEach(line => {
+    const points = line.data.map((val, i) => `${x(i)},${y(val)}`).join(' ');
+    svg += `<polyline points="${points}" fill="none" stroke="${line.color}" stroke-width="${line.weight}" stroke-linejoin="round" opacity="0.5"/>`;
+    svg += `<circle cx="${x(5)}" cy="${y(line.data[5])}" r="2.5" fill="${line.color}" opacity="0.6"/>`;
+    svg += `<text x="${x(5) + 6}" y="${y(line.data[5]) + 3}" font-size="8" fill="${line.color}" opacity="0.8">${line.name}</text>`;
+  });
+
+  const ocvmPts = ocvmLine.data.map((val, i) => `${x(i)},${y(val)}`).join(' ');
+  svg += `<polyline points="${ocvmPts}" fill="none" stroke="${ocvmLine.color}" stroke-width="${ocvmLine.weight}" stroke-linejoin="round"/>`;
+  ocvmLine.data.forEach((val, i) => {
+    svg += `<circle cx="${x(i)}" cy="${y(val)}" r="3.5" fill="${ocvmLine.color}" stroke="white" stroke-width="1.5"/>`;
+  });
+  const ocvmLast = ocvmLine.data[5];
+  svg += `<text x="${x(5) + 6}" y="${y(ocvmLast) + 3}" font-size="10" font-weight="700" fill="var(--dark)">OpenCVM</text>`;
+
+  const worstComp = lines.reduce((a, b) => a.data[5] > b.data[5] ? a : b);
+  if (worstComp.name !== 'OpenCVM') {
+    const midY = (y(ocvmLast) + y(worstComp.data[5])) / 2;
+    const savingsAmt = worstComp.data[5] - ocvmLast;
+    svg += `<line x1="${x(5) - 3}" y1="${y(ocvmLast)}" x2="${x(5) - 3}" y2="${y(worstComp.data[5])}" stroke="var(--green)" stroke-width="1.5" stroke-dasharray="4,3"/>`;
+    svg += `<text x="${x(5) - 8}" y="${midY + 3}" text-anchor="end" font-size="9" font-weight="600" fill="var(--dark)">Save ${fmt(savingsAmt)}</text>`;
+  }
+
+  svg += `<line x1="${pad.l}" y1="${pad.t}" x2="${pad.l}" y2="${H - pad.b}" stroke="var(--dark)" stroke-width="1.5"/>`;
+  svg += `<line x1="${pad.l}" y1="${H - pad.b}" x2="${W - pad.r}" y2="${H - pad.b}" stroke="var(--dark)" stroke-width="1.5"/>`;
+
+  document.getElementById('tcoChart').innerHTML = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="font-family:var(--font)">${svg}</svg>`;
+}
+
+// =============================================
+// RENDER ALL — Called by Puppeteer after injecting params
+// =============================================
+
+function renderAll() {
+  const p = window.__PARAMS__;
+  const inp = {
+    company: p.company || 'Client',
+    region: p.region || '2',
+    subs: parseInt(p.subs) || 1000000,
+    flow: p.flow === '1',
+    nbo: p.nbo === '1',
+    churn: p.churn === '1',
+    sla: p.sla || '9x5',
+    traits: parseInt(p.traits) || 200,
+    quickMig: parseInt(p.qm) || 0,
+    simpleInt: parseInt(p.si) || 0,
+    complexInt: parseInt(p.ci) || 0
+  };
+
+  // Set header info
+  document.getElementById('clientName').textContent = inp.company;
+  document.getElementById('reportDate').textContent = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+
+  // Set logo images
+  const logoPath = window.__LOGO_PATH__ || '/img/opencvm-logo.svg';
+  document.getElementById('logoImg').src = logoPath;
+  if (window.__FOOTER_LOGO__) {
+    document.getElementById('footerLogo').src = window.__FOOTER_LOGO__;
+  }
+
+  const hosted = calcHosted(inp);
+  const aws = calcAWS(inp);
+  const onprem = calcOnPrem(inp);
+  const competitors = calcCompetitors(inp);
+
+  renderSummaryCards(hosted, aws, onprem);
+  renderBreakdownTable(hosted, aws, onprem);
+  renderCompetitorTable(hosted, competitors);
+  renderTCOChart(hosted, competitors);
+}
+</script>
+</body>
+</html>
