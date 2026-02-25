@@ -30,6 +30,83 @@ function renderSummaryCards(hosted, aws, onprem) {
   document.getElementById('summaryCards').innerHTML = html;
 }
 
+function renderBreakdownTable(hosted, aws, onprem) {
+  const html = `<table>
+    <thead>
+      <tr>
+        <th style="width:22%">Cost Component</th>
+        <th style="width:13%;border-left:2px solid var(--pink)">Hosted</th>
+        <th colspan="3" style="border-left:2px solid var(--blue);text-align:center">Self-Hosted AWS</th>
+        <th colspan="3" style="border-left:2px solid var(--green);text-align:center">Self-Hosted On-Prem</th>
+      </tr>
+      <tr class="sub-header">
+        <th></th>
+        <th style="border-left:2px solid var(--pink)">Total</th>
+        <th style="border-left:2px solid var(--blue)">Exacaster</th><th>Infra</th><th>Total</th>
+        <th style="border-left:2px solid var(--green)">Exacaster</th><th>Infra</th><th>Total</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Platform License</td>
+        <td class="number" style="border-left:2px solid rgba(253,79,123,0.2)">${fmtFull(hosted.platformAnnual)}</td>
+        <td class="number" style="border-left:2px solid rgba(51,153,255,0.2)">\u2014</td><td class="number">\u2014</td><td class="number">\u2014</td>
+        <td class="number" style="border-left:2px solid rgba(39,204,180,0.2)">\u2014</td><td class="number">\u2014</td><td class="number">\u2014</td>
+      </tr>
+      <tr>
+        <td>Enterprise Support</td>
+        <td class="number" style="border-left:2px solid rgba(253,79,123,0.2)">Included</td>
+        <td class="number" style="border-left:2px solid rgba(51,153,255,0.2)">${fmtFull(aws.supportAnnual)}</td><td class="number">\u2014</td><td class="number">${fmtFull(aws.supportAnnual)}</td>
+        <td class="number" style="border-left:2px solid rgba(39,204,180,0.2)">${fmtFull(onprem.supportAnnual)}</td><td class="number">\u2014</td><td class="number">${fmtFull(onprem.supportAnnual)}</td>
+      </tr>
+      <tr>
+        <td>Managed Services (${aws.totalCIs} / ${onprem.totalCIs} CIs)</td>
+        <td class="number" style="border-left:2px solid rgba(253,79,123,0.2)">Included</td>
+        <td class="number" style="border-left:2px solid rgba(51,153,255,0.2)">${fmtFull(aws.msAnnual)}</td><td class="number">\u2014</td><td class="number">${fmtFull(aws.msAnnual)}</td>
+        <td class="number" style="border-left:2px solid rgba(39,204,180,0.2)">${fmtFull(onprem.msAnnual)}</td><td class="number">\u2014</td><td class="number">${fmtFull(onprem.msAnnual)}</td>
+      </tr>
+      <tr>
+        <td>Infrastructure</td>
+        <td class="number" style="border-left:2px solid rgba(253,79,123,0.2)">Included</td>
+        <td class="number" style="border-left:2px solid rgba(51,153,255,0.2)">\u2014</td><td class="number">${fmtFull(aws.infraAnnual)}</td><td class="number">${fmtFull(aws.infraAnnual)}</td>
+        <td class="number" style="border-left:2px solid rgba(39,204,180,0.2)">\u2014</td><td class="number">${fmtFull(onprem.infraAnnual)}</td><td class="number">${fmtFull(onprem.infraAnnual)}</td>
+      </tr>
+      <tr class="total-row">
+        <td>Annual Recurring</td>
+        <td class="number" style="border-left:2px solid rgba(253,79,123,0.2)">${fmtFull(hosted.totalAnnual)}</td>
+        <td class="number" style="border-left:2px solid rgba(51,153,255,0.2)">${fmtFull(aws.exaAnnual)}</td><td class="number">${fmtFull(aws.infraAnnual)}</td><td class="number">${fmtFull(aws.totalAnnual)}</td>
+        <td class="number" style="border-left:2px solid rgba(39,204,180,0.2)">${fmtFull(onprem.exaAnnual)}</td><td class="number">${fmtFull(onprem.infraAnnual)}</td><td class="number">${fmtFull(onprem.totalAnnual)}</td>
+      </tr>
+      <tr><td colspan="8" style="height:6px;background:var(--light);padding:0"></td></tr>
+      <tr>
+        <td>Deployment Fee</td>
+        <td class="number" style="border-left:2px solid rgba(253,79,123,0.2)">${fmtFull(hosted.deployFee)}</td>
+        <td class="number" colspan="2" style="border-left:2px solid rgba(51,153,255,0.2)"></td><td class="number">${fmtFull(aws.deployFee)}</td>
+        <td class="number" colspan="2" style="border-left:2px solid rgba(39,204,180,0.2)"></td><td class="number">${fmtFull(onprem.deployFee)}</td>
+      </tr>
+      <tr>
+        <td>Implementation</td>
+        <td class="number" style="border-left:2px solid rgba(253,79,123,0.2)">${fmtFull(hosted.implCost)}</td>
+        <td class="number" colspan="2" style="border-left:2px solid rgba(51,153,255,0.2)"></td><td class="number">${fmtFull(aws.implCost)}</td>
+        <td class="number" colspan="2" style="border-left:2px solid rgba(39,204,180,0.2)"></td><td class="number">${fmtFull(onprem.implCost)}</td>
+      </tr>
+      <tr class="total-row">
+        <td>Year 1 Total</td>
+        <td class="number" style="border-left:2px solid rgba(253,79,123,0.2)">${fmtFull(hosted.year1)}</td>
+        <td class="number" colspan="2" style="border-left:2px solid rgba(51,153,255,0.2)"></td><td class="number">${fmtFull(aws.year1)}</td>
+        <td class="number" colspan="2" style="border-left:2px solid rgba(39,204,180,0.2)"></td><td class="number">${fmtFull(onprem.year1)}</td>
+      </tr>
+      <tr class="total-row" style="background:#E8F5E9">
+        <td style="font-size:1rem">5-Year TCO</td>
+        <td class="number" style="border-left:2px solid rgba(253,79,123,0.2);font-size:1rem">${fmtFull(hosted.tco5)}</td>
+        <td class="number" colspan="2" style="border-left:2px solid rgba(51,153,255,0.2)"></td><td class="number" style="font-size:1rem">${fmtFull(aws.tco5)}</td>
+        <td class="number" colspan="2" style="border-left:2px solid rgba(39,204,180,0.2)"></td><td class="number" style="font-size:1rem">${fmtFull(onprem.tco5)}</td>
+      </tr>
+    </tbody>
+  </table>`;
+  document.getElementById('breakdownTable').innerHTML = html;
+}
+
 function renderCompetitorTable(recommended, competitors) {
   const ourTCO = recommended.tco5;
   const ourAnnual = recommended.totalAnnual;
@@ -213,6 +290,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Render
   renderSummaryCards(hosted, aws, onprem);
+  renderBreakdownTable(hosted, aws, onprem);
   renderCompetitorTable(recommended, competitors);
   renderTCOChart(recommended, competitors);
 
