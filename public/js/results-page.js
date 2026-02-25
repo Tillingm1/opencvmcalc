@@ -183,9 +183,10 @@ function renderTCOChart(recommended, competitors) {
       color: 'var(--green)',
       weight: 3,
       data: (() => {
-        const impl = recommended.deployFee + recommended.implCost;
-        const pts = [impl];
-        for (let y = 1; y <= 5; y++) pts.push(impl + recommended.totalAnnual * y);
+        const oneOff = recommended.deployFee + recommended.implCost;
+        const annual = recommended.totalAnnual;
+        const pts = [0];
+        for (let y = 1; y <= 5; y++) pts.push(oneOff + annual * y);
         return pts;
       })()
     },
@@ -194,8 +195,9 @@ function renderTCOChart(recommended, competitors) {
       color: compColors[i % compColors.length],
       weight: 1.5,
       data: (() => {
-        const pts = [data.impl];
-        for (let y = 1; y <= 5; y++) pts.push(data.impl + (data.annualPlatform + data.support) * y);
+        const annual = data.annualPlatform + data.support;
+        const pts = [0];
+        for (let y = 1; y <= 5; y++) pts.push(data.impl + annual * y);
         return pts;
       })()
     }))

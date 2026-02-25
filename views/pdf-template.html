@@ -286,9 +286,10 @@ function renderTCOChart(recommended, competitors) {
     {
       name: 'OpenCVM', color: 'var(--green)', weight: 2.5,
       data: (() => {
-        const impl = recommended.deployFee + recommended.implCost;
-        const pts = [impl];
-        for (let y = 1; y <= 5; y++) pts.push(impl + recommended.totalAnnual * y);
+        const oneOff = recommended.deployFee + recommended.implCost;
+        const annual = recommended.totalAnnual;
+        const pts = [0];
+        for (let y = 1; y <= 5; y++) pts.push(oneOff + annual * y);
         return pts;
       })()
     },
@@ -296,8 +297,9 @@ function renderTCOChart(recommended, competitors) {
       name: name.replace(' CDP','').replace(' RT-CDP',''),
       color: compColors[i % compColors.length], weight: 1.5,
       data: (() => {
-        const pts = [data.impl];
-        for (let y = 1; y <= 5; y++) pts.push(data.impl + (data.annualPlatform + data.support) * y);
+        const annual = data.annualPlatform + data.support;
+        const pts = [0];
+        for (let y = 1; y <= 5; y++) pts.push(data.impl + annual * y);
         return pts;
       })()
     }))
